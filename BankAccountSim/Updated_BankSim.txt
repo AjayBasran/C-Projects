@@ -1,0 +1,250 @@
+#include <iostream>
+#include <ctime>
+using namespace std;
+
+/*
+you will need to create a class called Account. 
+The class Account is used to represent customers' bank accounts. 
+Your class should include four data members:
+account balance (a double), 
+ account number (an integer), 
+ customer name (a string), 
+ and date the account was opened (a string). 
+ 
+ Your class should provide two constructors: 
+ one default constructor with no parameters
+ 
+ one constructor with the initial balance, account number, customer name, and date created as parameters. 
+ The second constructor should check the initial balance. If the balance is not >= 0, 
+ the balance should be set to 0 and an error message should be displayed.
+*/
+/*
+1.  adding new accounts
+2.    deleting existing accounts
+3.    crediting/depositing to an existing account
+4.    debiting/withdrawing from an existing account
+5.    displaying information for a single specific account
+6.    displaying a list of all accounts within the bank
+*/
+struct account {
+    double balance; //account balance
+    int number; //account number
+    const char* name; //customer name
+    const char* date; //account creation date    
+    
+    friend ostream& operator<<(ostream& os, const account& a) {
+    os << "balance=" << a.balance << ", number=" << a.number << ", name=" << a.name << ", date=" << a.date;
+    return os;
+    }
+};
+
+class Node {
+    public:
+        int key;
+        account data;
+        Node* next;
+            
+        Node(void) {
+        key = 0;
+        next = nullptr;
+        }
+        Node(int k, account d) {
+            key = k;
+            data = d;
+        }
+};
+
+class SLL {
+    public:
+        Node* head;
+
+        SLL() {
+            head = nullptr;
+        }
+    
+        SLL(Node *n) {
+            head = n;
+        }
+    
+        Node* exists(int k) {
+            Node* temp = nullptr;
+            Node* ptr = head;
+        
+            while (ptr != nullptr) {
+                if (ptr->key == k) temp = ptr;
+        
+                ptr = ptr -> next;
+            }
+            return temp;
+        }
+    
+        void append(Node* n) {
+            if(SLL::exists(n->key)!= nullptr){
+                std::cout << "Error: Node already exists with key value! " 
+                        "Append another node with a different key value"
+                        << std::endl;
+            }
+            else {
+                if (head == nullptr) head = n;
+                else {
+                    Node* ptr = head;
+                    while (ptr != nullptr) ptr = ptr -> next;
+                    ptr-> next = n;
+                }
+            }
+        }
+    
+    
+        void prepend(Node* n) {
+            if(SLL::exists(n->key)!= nullptr){
+                std::cout << "Error: Node already exists with key value! " 
+                        "Append another node with a different key value"
+                        << std::endl;
+            }
+            else {
+                n-> next = head;
+                head = n;
+            }
+        }
+        void insert(int k, Node* n) {
+            Node* ptr = SLL::exists(k);
+            if(ptr == nullptr) std::cout << "Error: No node exsts with key value" << k << std::endl;
+            else {
+                if(SLL::exists(n->key) != nullptr) {
+                    std::cout << "Error: Node already exists with key value! " 
+                        "Append another node with a different key value"
+                        << std::endl;
+                }
+                else {
+                    n->next = ptr->next;
+                    ptr->next = n;
+                }
+            }
+        }
+    
+    
+        void deletebyKey(int k) {
+            if(head == nullptr) std::cout << "Error! SLL already empty, can't delete" << std::endl;
+        
+            else if (head != nullptr) {
+                if (head->key == k) head = head->next;
+        
+                else{
+                    Node* temp = nullptr;
+                    Node* prevptr = head;
+                    Node* currentptr = head->next;
+                    while(currentptr!=nullptr) {
+                        if(currentptr->key == k) {
+                            temp = currentptr;
+                            currentptr = nullptr;
+                        }
+                        else {
+                            prevptr = prevptr->next;
+                            currentptr = currentptr->next;
+                        }
+                    }
+                    if(temp!=nullptr) prevptr->next = temp->next;
+                    else std::cout << "Node doesn't exist with key value: " << k << std::endl;
+        
+                }
+            }
+        }
+        
+        void updatebyKey(int k, account d) {
+            Node* ptr = SLL::exists(k);
+            if(ptr!=nullptr) ptr->data = d;
+            else std::cout << "Node doesn't exist with key value: " << k << std::endl;
+        }
+    
+        
+        void print(int account_num) {
+            if(head == nullptr) std::cout << "No nodes in SLL" << std::endl;
+            else {
+                Node* temp = head;
+                while(temp != nullptr) {
+                    if(account_num == temp->key) {
+                        std::cout 
+                            << "("
+                            << temp->key
+                            << ","
+                            <<temp->data << " "
+                            <<") --> ";
+                    }
+                    temp = temp -> next;
+                }
+            }
+        }
+        
+        account find(int account_num) {
+            if(head == nullptr) std::cout << "No nodes in SLL" << std::endl;
+            else {
+                Node* temp = head;
+                while(temp != nullptr) {
+                    if(account_num == temp->key) {
+                        return (temp->data); //Trying to access account from linked list in order to change the things in account
+                    }
+                    temp = temp -> next;
+                }
+            }
+        }  
+};
+
+class Account{
+    public:
+        
+        SLL s_obj;
+        int avail_accnum = 0;
+        Account(void) {
+        
+        }
+        void Add(account x, double balance, const char *name) {
+                Node* n1 = new Node();
+        
+                time_t ltime;
+                time(&ltime); 
+        
+                x.balance = balance;
+                x.number = avail_accnum;
+                x.name = name;
+                x.date = ctime(&ltime);
+        
+                n1->key = avail_accnum;
+                n1->data = x;
+        
+                s_obj.SLL::append(n1);
+                avail_accnum +=1;
+        }
+        
+        void Delete(int key) {
+                s_obj.SLL::deletebyKey(key);
+        }
+        void Deposit(int key, double amount) {
+                account x = s_obj.find(key);
+                if (amount > 0) x.balance += amount;
+                else std::cout << "Error, amount must be above 0"; 
+        }
+        void Withdrawal(int key, double amount) {
+                account x = s_obj.find(key);
+                if (amount > 0) x.balance -= amount;
+                else std::cout << "Error, amount must be above 0"; 
+        }
+        void Display(int account_num) {
+                s_obj.SLL::print(account_num);
+        }
+};
+
+int main(void) {
+    string input;
+    int endprogram = 0;
+    cout << "Welcome to Ajay's Bank Management System!" << endl;
+    cin.ignore();
+
+    cout << "******************************************" << endl;
+    
+    while(endprogram != 1) {
+    
+        cin >> input;
+
+    }
+    return 0;
+}
